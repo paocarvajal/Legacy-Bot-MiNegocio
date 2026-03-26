@@ -503,5 +503,273 @@ h1 { text-align: center; color: #00529b; font-size: 17px; margin-bottom: 4px; }
   Mi Negocio / De La Mano – Legacy Bot Decision Tree v2 · March 2026 · Work in progress
 </div>
 
+<!-- FIREBASE REVIEW OVERLAY (ENTERPRISE PMO) -->
+<style>
+  /* Floating Toggle */
+  #review-toggle {
+    position: fixed; top: 15px; right: 20px; z-index: 1000;
+    background: #00838f; color: #fff; border: 2px solid #00838f; padding: 8px 16px;
+    border-radius: 20px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15); font-size: 13px; font-family: Arial, sans-serif;
+  }
+  #review-toggle.active {
+    background: #fff; color: #1e8e3e; border-color: #1e8e3e;
+  }
+  
+  /* Review Mode Styles */
+  body.review-mode .node, body.review-mode .label, body.review-mode .section-title, body.review-mode .issue-card {
+    cursor: pointer; position: relative;
+    transition: box-shadow 0.2s;
+  }
+  body.review-mode .node:hover, body.review-mode .label:hover, body.review-mode .section-title:hover, body.review-mode .issue-card:hover {
+    box-shadow: 0 0 0 3px #f9a825 !important;
+  }
+  
+  /* Comment Badges */
+  .comment-badge {
+    position: absolute; top: -8px; right: -8px;
+    background: #d93025; color: #fff; font-size: 11px; font-weight: bold;
+    width: 22px; height: 22px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3); font-family: Arial, sans-serif;
+  }
+  
+  /* Sidebar */
+  #review-sidebar {
+    position: fixed; top: 0; right: -360px; width: 360px; height: 100%;
+    background: #fff; box-shadow: -4px 0 15px rgba(0,0,0,0.2); z-index: 1001;
+    transition: right 0.3s ease; display: flex; flex-direction: column;
+    font-family: Arial, sans-serif;
+  }
+  #review-sidebar.open { right: 0; }
+  .rs-header {
+    background: #00529b; color: #fff; padding: 15px 20px; display: flex;
+    justify-content: space-between; align-items: center;
+  }
+  .rs-header h3 { margin: 0; font-size: 15px; }
+  .rs-close { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+  .rs-content { padding: 15px; flex-grow: 1; overflow-y: auto; background:#f0f2f7; }
+  .rs-target-name { font-size: 11px; color: #555; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px; font-weight: bold; line-height: 1.4; }
+  
+  .rs-form { background:#fff; padding:20px; border-top:1px solid #ddd; }
+  .rs-form input, .rs-form textarea {
+    width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;
+    border-radius: 4px; font-family: inherit; font-size:13px;
+  }
+  .rs-form textarea { resize: vertical; min-height: 80px; }
+  .rs-btn {
+    background: #00838f; color: #fff; border: none; padding: 10px 15px;
+    border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; font-size:14px;
+    transition: background 0.2s;
+  }
+  .rs-btn:hover { background: #005d66; }
+  
+  .comment-card {
+    background: #fff; border-left: 4px solid #f9a825; padding: 12px;
+    margin-bottom: 12px; border-radius: 0 4px 4px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .comment-meta { font-size: 11px; color: #777; display: flex; justify-content: space-between; margin-bottom:6px; }
+  .comment-meta strong { color: #222; font-size: 12px; }
+  .comment-text { font-size: 13px; color: #444; word-wrap: break-word; line-height: 1.5; }
+  .btn-resolve {
+    background: #f1f3f4; border: 1px solid #dadce0; color: #3c4043; font-size: 10px; font-weight: bold;
+    padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-top: 8px;
+    transition: all 0.2s;
+  }
+  .btn-resolve:hover { background: #e6f4ea; color:#137333; border-color:#137333; }
+</style>
+
+<button id="review-toggle">📝 Director Review Mode</button>
+
+<div id="review-sidebar">
+  <div class="rs-header">
+    <h3>Stakeholder Comments</h3>
+    <button class="rs-close" onclick="closeSidebar()">&times;</button>
+  </div>
+  <div class="rs-content" id="rs-comments-list">
+    <div class="rs-target-name" id="rs-target-display">Click any text box, label, or node to add your feedback...</div>
+    <div id="rs-comments-container"></div>
+  </div>
+  <div class="rs-form">
+    <input type="text" id="rs-author" placeholder="Your Name / Title (e.g., John - Ops Director)" />
+    <textarea id="rs-text" placeholder="Type your constructive feedback here..."></textarea>
+    <button class="rs-btn" onclick="submitComment()">Save Feedback</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+  // Configuration Extracted From Ops Manager User
+  const firebaseConfig = {
+    apiKey: "AIzaSyC5AzgIf4dcMR4nxnO3P8w1rM7jC3ryGPk",
+    authDomain: "mi-negocio-legacy-bot.firebaseapp.com",
+    projectId: "mi-negocio-legacy-bot",
+    storageBucket: "mi-negocio-legacy-bot.firebasestorage.app",
+    messagingSenderId: "672899852963",
+    appId: "1:672899852963:web:1a3c30da33c1a30f9c6d16",
+    measurementId: "G-YFT35T08VC"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let reviewMode = false;
+  let currentTargetId = null;
+  let currentTargetText = '';
+  let activeUnsubscribe = null;
+  let globalCommentsMap = {};
+
+  const toggleBtn = document.getElementById('review-toggle');
+  const sidebar = document.getElementById('review-sidebar');
+  const commentsContainer = document.getElementById('rs-comments-container');
+  const targetDisplay = document.getElementById('rs-target-display');
+  const authorInput = document.getElementById('rs-author');
+  const textInput = document.getElementById('rs-text');
+
+  // Load saved identity string
+  if(localStorage.getItem('pmo_reviewer')) {
+    authorInput.value = localStorage.getItem('pmo_reviewer');
+  }
+
+  // Create hash/ID for mapping
+  function generateStructId(text) {
+    return text.toString().toLowerCase().trim().replace(/[\s\W-]+/g, '-').substring(0, 35);
+  }
+
+  // Bind DOM Elements
+  const selectableElements = document.querySelectorAll('.node, .label, .section-title, .issue-card');
+  selectableElements.forEach((el, index) => {
+    const structId = generateStructId(el.innerText || 'element') + '-n' + index;
+    el.setAttribute('data-comment-id', structId);
+    
+    el.addEventListener('click', (e) => {
+      if(!reviewMode) return;
+      e.preventDefault(); 
+      e.stopPropagation();
+      openSidebar(structId, el.innerText.substring(0, 70) + '...');
+    });
+  });
+
+  // Toggle Logic
+  toggleBtn.addEventListener('click', () => {
+    reviewMode = !reviewMode;
+    toggleBtn.classList.toggle('active', reviewMode);
+    document.body.classList.toggle('review-mode', reviewMode);
+    toggleBtn.innerText = reviewMode ? "✅ Review Mode: ON" : "📝 Director Review Mode";
+    if(!reviewMode) closeSidebar();
+  });
+
+  // Global Scope for inline HTML onClick bindings
+  window.closeSidebar = () => {
+    sidebar.classList.remove('open');
+    currentTargetId = null;
+    if(activeUnsubscribe) { activeUnsubscribe(); activeUnsubscribe = null; }
+  };
+
+  function openSidebar(id, textPreview) {
+    currentTargetId = id;
+    currentTargetText = textPreview;
+    targetDisplay.innerText = "Selected Target: " + textPreview;
+    sidebar.classList.add('open');
+    loadComments(id);
+  }
+
+  // Snapshot Listener for Badge UI
+  onSnapshot(collection(db, "framework_comments"), (snapshot) => {
+    globalCommentsMap = {};
+    snapshot.forEach(doc => {
+      const dbId = doc.data().targetId;
+      if(!globalCommentsMap[dbId]) globalCommentsMap[dbId] = 0;
+      globalCommentsMap[dbId]++;
+    });
+    
+    // Purge and re-mount badges
+    document.querySelectorAll('.comment-badge').forEach(b => b.remove());
+    for(const [targetId, count] of Object.entries(globalCommentsMap)) {
+      if(count > 0) {
+        const structuralElement = document.querySelector(`[data-comment-id="${targetId}"]`);
+        if(structuralElement) {
+          const badge = document.createElement('div');
+          badge.className = 'comment-badge';
+          badge.innerText = count;
+          structuralElement.appendChild(badge);
+        }
+      }
+    }
+  });
+
+  // Component rendering
+  function loadComments(targetId) {
+    if(activeUnsubscribe) activeUnsubscribe();
+    const collectionQuery = query(collection(db, "framework_comments"));
+    commentsContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;"><i>Syncing...</i></div>';
+    
+    activeUnsubscribe = onSnapshot(collectionQuery, (snapshot) => {
+      commentsContainer.innerHTML = '';
+      let isCardGenerated = false;
+      const sortedDocs = [];
+      snapshot.forEach(d => {
+        if(d.data().targetId === targetId) sortedDocs.push({id: d.id, ...d.data()});
+      });
+      
+      sortedDocs.sort((a,b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+      
+      sortedDocs.forEach(data => {
+        isCardGenerated = true;
+        const div = document.createElement('div');
+        div.className = 'comment-card';
+        const dateObj = data.timestamp ? new Date(data.timestamp.toMillis()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'Live';
+        div.innerHTML = `
+          <div class="comment-meta">
+            <strong>${data.author}</strong>
+            <span>${dateObj}</span>
+          </div>
+          <div class="comment-text">${data.text}</div>
+          <button class="btn-resolve" onclick="resolveComment('${data.id}')">✓ Resolve / Commit</button>
+        `;
+        commentsContainer.appendChild(div);
+      });
+      if(!isCardGenerated) {
+        commentsContainer.innerHTML = '<div style="font-size:12px; color:#888; text-align:center; padding:30px; background:#e8eaed; border-radius:4px;">No active change orders for this level.</div>';
+      }
+    });
+  }
+
+  // Save Transaction
+  window.submitComment = async () => {
+    const author = authorInput.value.trim() || 'Anonymous Director';
+    const text = textInput.value.trim();
+    if(!text || !currentTargetId) return;
+    
+    localStorage.setItem('pmo_reviewer', author);
+    const btn = document.querySelector('.rs-btn');
+    btn.innerText = 'Syncing...'; btn.disabled = true;
+    
+    try {
+      await addDoc(collection(db, "framework_comments"), {
+        targetId: currentTargetId,
+        targetPreview: currentTargetText,
+        author: author,
+        text: text,
+        timestamp: serverTimestamp()
+      });
+      textInput.value = '';
+    } catch(err) {
+      console.error(err);
+      alert('Network Error. Ensure Firebase Test Mode Rules correctly allow write procedures.');
+    }
+    btn.innerText = 'Save Feedback'; btn.disabled = false;
+  };
+
+  // Resolution Transaction
+  window.resolveComment = async (docId) => {
+    if(confirm('Resolve Change Order? This physically removes the comment sequence.')) {
+      await deleteDoc(doc(db, "framework_comments", docId));
+    }
+  };
+</script>
+
 </body>
 </html>
