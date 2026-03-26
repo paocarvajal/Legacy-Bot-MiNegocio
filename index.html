@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Negocio – Legacy Bot Decision Tree v2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #eef2f7; padding: 24px; font-size: 12px; }
+
+h1 { text-align: center; color: #00529b; font-size: 17px; margin-bottom: 4px; }
+.subtitle { text-align: center; color: #777; font-size: 11px; margin-bottom: 22px; }
+
+/* ── LEGEND ── */
+.legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 22px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+.leg-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+/* ── NODE PALETTE ── */
+.n-start   { background:#00529b; color:#fff; border-radius:20px; }
+.n-bot     { background:#1565c0; color:#fff; }
+.n-user    { background:#6a0dad; color:#fff; }
+.n-ok      { background:#2e7d32; color:#fff; }
+.n-warn    { background:#e65100; color:#fff; }
+.n-err     { background:#b71c1c; color:#fff; }
+.n-info    { background:#0277bd; color:#fff; }
+.n-end     { background:#37474f; color:#fff; border-radius:20px; }
+.n-ticket  { background:#558b2f; color:#fff; }
+.n-menu    { background:#4527a0; color:#fff; }
+.n-sub     { background:#00838f; color:#fff; }
+.n-wip     { background:#fff8e1; color:#795548; border:2px dashed #f9a825; }
+
+/* ── BASE NODE ── */
+.node {
+  border-radius: 7px;
+  padding: 7px 12px;
+  text-align: center;
+  min-width: 150px;
+  max-width: 210px;
+  line-height: 1.45;
+  position: relative;
+}
+.node small { display:block; font-size: 10px; opacity:.85; margin-top:2px; }
+
+/* ── CONNECTORS ── */
+.vline  { width:2px; min-height:14px; background:#aaa; margin:0 auto; }
+.arrow  { text-align:center; color:#888; font-size:13px; line-height:1; }
+.label  { display:inline-block; font-size:10px; color:#444; background:#fff;
+          border:1px solid #ccc; border-radius:10px; padding:1px 7px; margin:2px 0; }
+
+/* ── LAYOUT ── */
+.col  { display:flex; flex-direction:column; align-items:center; }
+.row  { display:flex; flex-direction:row; align-items:flex-start; justify-content:center; gap:14px; flex-wrap:wrap; }
+
+/* ── SECTIONS ── */
+.section {
+  background:#fff;
+  border-radius:10px;
+  padding:18px 16px;
+  margin-bottom:18px;
+  box-shadow:0 1px 4px rgba(0,0,0,.12);
+  width:100%;
+}
+.section-title {
+  font-size:12px; font-weight:bold; color:#00529b;
+  text-transform:uppercase; letter-spacing:.8px;
+  margin-bottom:14px; border-bottom:2px solid #e3eaf5; padding-bottom:6px;
+}
+
+/* ── ISSUE GRID ── */
+.issue-grid { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
+.issue-card {
+  background:#f5f7fa; border:1px solid #d0d7e5; border-radius:8px;
+  padding:8px 12px; min-width:140px; max-width:180px; text-align:center;
+}
+.issue-card .ic-title { font-weight:bold; color:#4527a0; font-size:11px; }
+.issue-card .ic-sub   { font-size:10px; color:#666; margin-top:2px; }
+</style>
+</head>
+<body>
+
+<h1>🤖 Mi Negocio / De La Mano — Legacy WhatsApp Bot</h1>
+<p class="subtitle">Decision Tree v2 · Based on observed chat flows · March 2026 · ⚠️ Some sub-branches still pending</p>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="leg"><div class="leg-dot n-start"></div> Entry / End</div>
+  <div class="leg"><div class="leg-dot n-bot"></div> Bot message</div>
+  <div class="leg"><div class="leg-dot n-user"></div> User input</div>
+  <div class="leg"><div class="leg-dot n-ok"></div> Success / Resolved</div>
+  <div class="leg"><div class="leg-dot n-warn"></div> Warning / Inactive account</div>
+  <div class="leg"><div class="leg-dot n-err"></div> Error / Not found</div>
+  <div class="leg"><div class="leg-dot n-menu"></div> Main menu</div>
+  <div class="leg"><div class="leg-dot n-sub"></div> Sub-menu / Issues list</div>
+  <div class="leg"><div class="leg-dot n-ticket"></div> Ticket created</div>
+  <div class="leg"><div class="leg-dot n-wip"></div> Pending screenshots</div>
+</div>
+
+<!-- SECTION 1: ENTRY & LANGUAGE -->
+<div class="section">
+  <div class="section-title">① Entry &amp; Language Selection</div>
+  <div class="col">
+    <div class="node n-start">📱 Customer contacts via WhatsApp<br>(Sabritas S de RL de CV)</div>
+    <div class="vline"></div>
+    <div class="node n-bot">Bot greets in Spanish &amp; English<br><small>Asks to select language. Warns: do NOT share personal data unsolicited.</small></div>
+    <div class="vline"></div>
+    <div class="row">
+      <div class="col">
+        <div class="label">🇬🇧 English</div>
+        <div class="vline"></div>
+        <div class="node n-user">User selects English</div>
+      </div>
+      <div class="col">
+        <div class="label">🇲🇽 Español</div>
+        <div class="vline"></div>
+        <div class="node n-user">User selects Español</div>
+        <div class="vline"></div>
+        <div class="node n-wip">⚠️ Spanish flow pending<br><small>(assumed mirror of English)</small></div>
+      </div>
+    </div>
+    <div class="vline"></div>
+    <div class="arrow">↓ continues to Authentication</div>
+  </div>
+</div>
+
+<!-- SECTION 2: AUTHENTICATION -->
+<div class="section">
+  <div class="section-title">② Authentication — Identity Verification</div>
+  <div class="col">
+    <div class="node n-bot">Please provide your SAP ID or the registered mobile number linked to your account.</div>
+    <div class="vline"></div>
+    <div class="row">
+
+      <!-- BRANCH A: SAP ID -->
+      <div class="col">
+        <div class="label">SAP ID</div>
+        <div class="vline"></div>
+        <div class="node n-user">User enters SAP ID<br><small>(e.g. 0101085192)</small></div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">✅ Found — Inactive</div>
+            <div class="vline"></div>
+            <div class="node n-warn">Account inactive &amp; deprovisioned<br><small>Suggests re-register with new phone number</small></div>
+            <div class="vline"></div>
+            <div class="arrow">↓ see Section 3-A</div>
+          </div>
+          <div class="col">
+            <div class="label">❌ Not found</div>
+            <div class="vline"></div>
+            <div class="node n-err">Couldn't find you in system<br><small>"Try another SAP ID, Registered Number, or I don't know"</small></div>
+            <div class="vline"></div>
+            <div class="node n-bot">↩ Returns to auth options menu</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BRANCH B: REGISTERED NUMBER -->
+      <div class="col">
+        <div class="label">Registered Number</div>
+        <div class="vline"></div>
+        <div class="node n-user">User enters phone number</div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">✅ Found — Active</div>
+            <div class="vline"></div>
+            <div class="node n-ok">Account validated ✓</div>
+            <div class="vline"></div>
+            <div class="arrow">↓ see Section 4 (Main Menu)</div>
+          </div>
+          <div class="col">
+            <div class="label">✅ Found — Inactive</div>
+            <div class="vline"></div>
+            <div class="node n-warn">Account inactive &amp; deprovisioned<br><small>Suggests re-register with new phone number</small></div>
+            <div class="vline"></div>
+            <div class="arrow">↓ see Section 3-A</div>
+          </div>
+          <div class="col">
+            <div class="label">❌ Not found</div>
+            <div class="vline"></div>
+            <div class="node n-err">Couldn't find you in system<br><small>"Try another SAP ID, Registered Number, or I don't know"</small></div>
+            <div class="vline"></div>
+            <div class="node n-bot">↩ Returns to auth options menu</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BRANCH C: I DON'T KNOW -->
+      <div class="col">
+        <div class="label">I don't know</div>
+        <div class="vline"></div>
+        <div class="node n-bot">I'm sorry to hear that.</div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">Chat with an agent</div>
+            <div class="vline"></div>
+            <div class="arrow">↓ see Section 3-B</div>
+          </div>
+          <div class="col">
+            <div class="label">Call an agent</div>
+            <div class="vline"></div>
+            <div class="node n-wip">⚠️ Pending screenshots</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3-A: INACTIVE ACCOUNT RESOLUTION -->
+<div class="section">
+  <div class="section-title">③-A Inactive Account Resolution Flow</div>
+  <div class="col">
+    <div class="node n-warn">Account inactive &amp; deprovisioned<br><small>"If you changed your phone number, re-register with your new number."</small></div>
+    <div class="vline"></div>
+    <div class="node n-bot">Did this resolve the issue?</div>
+    <div class="vline"></div>
+    <div class="row">
+
+      <div class="col">
+        <div class="label">✅ Yes</div>
+        <div class="vline"></div>
+        <div class="node n-bot">Is there anything else I can help you with?</div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">Yes</div>
+            <div class="vline"></div>
+            <div class="node n-bot">↩ Restarts from language selection</div>
+          </div>
+          <div class="col">
+            <div class="label">No</div>
+            <div class="vline"></div>
+            <div class="node n-bot">Rate this conversation 1–5<br><small>5 = amazing, 1 = not great</small></div>
+            <div class="vline"></div>
+            <div class="node n-end">✓ Conversation closed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="label">❌ No</div>
+        <div class="vline"></div>
+        <div class="node n-bot">I'm sorry those steps didn't help.</div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">Chat with an agent</div>
+            <div class="vline"></div>
+            <div class="arrow">↓ see Section 3-B</div>
+          </div>
+          <div class="col">
+            <div class="label">Create a ticket</div>
+            <div class="vline"></div>
+            <div class="node n-err">⚠️ Unable to process<br>at the moment.<br><small>Please try again later.</small></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3-B: LIVE AGENT ROUTING -->
+<div class="section">
+  <div class="section-title">③-B Live Agent Routing</div>
+  <div class="col">
+    <div class="node n-bot">Connecting to customer service team.<br><small>Max wait time: 5 minutes.</small></div>
+    <div class="vline"></div>
+    <div class="row">
+      <div class="col">
+        <div class="label">Continue to wait</div>
+        <div class="vline"></div>
+        <div class="node n-bot">Please wait, an agent will be with you shortly.</div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">Agent available</div>
+            <div class="vline"></div>
+            <div class="node n-ok">✅ Live agent joins</div>
+          </div>
+          <div class="col">
+            <div class="label">No agents available</div>
+            <div class="vline"></div>
+            <div class="node n-err">Currently no agents available.<br><small>Please try again later.</small></div>
+            <div class="vline"></div>
+            <div class="node n-bot">Rate 1–5</div>
+            <div class="vline"></div>
+            <div class="node n-end">✓ Closed</div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="label">Call an agent</div>
+        <div class="vline"></div>
+        <div class="node n-wip">⚠️ Pending screenshots</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: MAIN MENU -->
+<div class="section">
+  <div class="section-title">④ Main Support Menu — Active &amp; Authenticated Account</div>
+  <div class="col">
+    <div class="node n-menu">Welcome to PepsiCo Online Support!<br>Please select the option you need help with.</div>
+    <div class="vline"></div>
+    <div class="row">
+      <div class="col">
+        <div class="label">Missing order</div>
+        <div class="vline"></div>
+        <div class="node n-wip">⚠️ Pending screenshots</div>
+      </div>
+      <div class="col">
+        <div class="label">Issue with route</div>
+        <div class="vline"></div>
+        <div class="node n-wip">⚠️ Pending screenshots</div>
+      </div>
+      <div class="col">
+        <div class="label">Other issues</div>
+        <div class="vline"></div>
+        <div class="node n-bot">Hi, thank you for reaching out!<br><small>Many issues can be resolved by updating your app. Describe your request or choose from common issues. Type "back" to go back or "representative" to chat with agent.</small></div>
+        <div class="vline"></div>
+        <div class="arrow">↓ Issues sub-menu (Section 5)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: ISSUES SUBMENU -->
+<div class="section">
+  <div class="section-title">⑤ Issues Sub-Menu (under "Other Issues")</div>
+  <div class="issue-grid">
+    <div class="issue-card">
+      <div class="ic-title">1. Change Phone Number</div>
+      <div class="ic-sub">How can I change my phone number?</div>
+    </div>
+    <div class="issue-card">
+      <div class="ic-title">2. Redeem Rewards</div>
+      <div class="ic-sub">Reward points and redemption</div>
+    </div>
+    <div class="issue-card">
+      <div class="ic-title">3. Login Issues</div>
+      <div class="ic-sub">I have issues with application login</div>
+    </div>
+    <div class="issue-card">
+      <div class="ic-title">4. Application Issues</div>
+      <div class="ic-sub">My application is not working</div>
+    </div>
+    <div class="issue-card">
+      <div class="ic-title">5. Order Issues</div>
+      <div class="ic-sub">I have issues with my order</div>
+    </div>
+    <div class="issue-card">
+      <div class="ic-title">6. Promotions Issue</div>
+      <div class="ic-sub">Having trouble submitting your order with promotions?</div>
+    </div>
+    <div class="issue-card">
+      <div class="ic-title">7. Claim Status</div>
+      <div class="ic-sub">Fetch claim status</div>
+    </div>
+    <div class="issue-card">
+      <div class="ic-title">8. Others</div>
+      <div class="ic-sub">I have a different issue</div>
+    </div>
+  </div>
+  <br>
+  <div class="col" style="align-items:flex-start; gap:4px; font-size:11px; color:#555;">
+    <span>💡 User can also type freely to describe their issue.</span>
+    <span>💡 Type <strong>"back"</strong> to return to previous menu.</span>
+    <span>💡 Type <strong>"representative"</strong> to connect to live agent.</span>
+  </div>
+</div>
+
+<!-- SECTION 6: CHANGE PHONE NUMBER FLOW -->
+<div class="section">
+  <div class="section-title">⑥ Issue Flow: Change Phone Number</div>
+  <div class="col">
+    <div class="node n-sub">User selects: Change Phone Number</div>
+    <div class="vline"></div>
+    <div class="node n-bot">Bot sends step-by-step instructions<br><small>1. Open De La Mano app → 2. Login → 3. Account icon → Profile → 4. Enter new number → 5. Click Verify → 6. Enter 6-digit code → 7. Verify → 8. Enter password → Click Next. Also sends video link.</small></div>
+    <div class="vline"></div>
+    <div class="node n-bot">Did this help?</div>
+    <div class="vline"></div>
+    <div class="row">
+
+      <div class="col">
+        <div class="label">✅ Yes</div>
+        <div class="vline"></div>
+        <div class="node n-ok">Issue resolved ✓</div>
+        <div class="vline"></div>
+        <div class="node n-bot">Is there anything else I can help you with?</div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">Yes</div>
+            <div class="vline"></div>
+            <div class="node n-bot">↩ Returns to Issues sub-menu</div>
+          </div>
+          <div class="col">
+            <div class="label">No</div>
+            <div class="vline"></div>
+            <div class="node n-bot">Rate 1–5</div>
+            <div class="vline"></div>
+            <div class="node n-end">✓ Closed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="label">❌ No</div>
+        <div class="vline"></div>
+        <div class="node n-bot">I'm sorry to hear that. Please provide the new phone number. We will update it for you.</div>
+        <div class="vline"></div>
+        <div class="node n-user">User enters new phone number</div>
+        <div class="vline"></div>
+        <div class="node n-bot">Thank you for providing these details.<br>Your claim number will now be generated.</div>
+        <div class="vline"></div>
+        <div class="node n-bot">Do you want to upload a screenshot of issue?</div>
+        <div class="vline"></div>
+        <div class="row">
+          <div class="col">
+            <div class="label">Yes — upload image</div>
+            <div class="vline"></div>
+            <div class="node n-bot">Please upload the image.<br><small>(1 image max)</small></div>
+            <div class="vline"></div>
+            <div class="node n-user">User uploads screenshot</div>
+            <div class="vline"></div>
+            <div class="node n-ticket">✅ Claim number generated<br><small>e.g. INC16597795<br>"Check claim status from main menu."</small></div>
+            <div class="vline"></div>
+            <div class="node n-bot">Is there anything else I can help you with?</div>
+            <div class="vline"></div>
+            <div class="row">
+              <div class="col">
+                <div class="label">Yes</div>
+                <div class="vline"></div>
+                <div class="node n-bot">↩ Returns to Issues sub-menu</div>
+              </div>
+              <div class="col">
+                <div class="label">No</div>
+                <div class="vline"></div>
+                <div class="node n-bot">Rate 1–5</div>
+                <div class="vline"></div>
+                <div class="node n-end">✓ Closed</div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="label">No screenshot</div>
+            <div class="vline"></div>
+            <div class="node n-ticket">✅ Claim number generated<br><small>(without image)</small></div>
+            <div class="vline"></div>
+            <div class="node n-bot">Is there anything else I can help you with?</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: REDEEM REWARDS FLOW -->
+<div class="section">
+  <div class="section-title">⑦ Issue Flow: Redeem Rewards</div>
+  <div class="col">
+    <div class="node n-sub">User selects: Redeem Rewards</div>
+    <div class="vline"></div>
+    <div class="node n-bot">Please select a number 1–5:<br><small>1. How do I redeem my rewards?<br>2. I cannot find a specific item in the rewards catalog.<br>3. I am missing reward points.<br>4. When do my reward points expire?<br>5. Other</small></div>
+    <div class="vline"></div>
+    <div class="node n-wip">⚠️ Sub-options 1–5 flows pending screenshots</div>
+  </div>
+</div>
+
+<!-- SECTION 8: PENDING CATEGORIES -->
+<div class="section">
+  <div class="section-title">⑧ Other Issue Categories — Pending Screenshots</div>
+  <div class="row">
+    <div class="col"><div class="node n-wip">3. Login Issues<br><small>⚠️ Flow pending</small></div></div>
+    <div class="col"><div class="node n-wip">4. Application Issues<br><small>⚠️ Flow pending</small></div></div>
+    <div class="col"><div class="node n-wip">5. Order Issues<br><small>⚠️ Flow pending</small></div></div>
+    <div class="col"><div class="node n-wip">6. Promotions Issue<br><small>⚠️ Flow pending</small></div></div>
+    <div class="col"><div class="node n-wip">7. Claim Status<br><small>⚠️ Flow pending</small></div></div>
+    <div class="col"><div class="node n-wip">8. Others<br><small>⚠️ Flow pending</small></div></div>
+  </div>
+</div>
+
+<div style="text-align:center; font-size:10px; color:#aaa; margin-top:10px;">
+  Mi Negocio / De La Mano – Legacy Bot Decision Tree v2 · March 2026 · Work in progress
+</div>
+
+</body>
+</html>
