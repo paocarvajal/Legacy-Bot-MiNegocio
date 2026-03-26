@@ -96,6 +96,29 @@ h1 { text-align: center; color: #00529b; font-size: 17px; margin-bottom: 4px; }
   <div class="leg"><div class="leg-dot n-wip"></div> Pending screenshots</div>
 </div>
 
+<!-- SECTION 0: PRE-BOT APP AUTHENTICATION (Extracted from 16:48 Screenshot) -->
+<div class="section">
+  <div class="section-title">⓪ Pre-Bot Application Authentication</div>
+  <div class="col">
+    <div class="node n-info">📱 MiNegocio+ Mobile App Gateway</div>
+    <div class="vline"></div>
+    <div class="row">
+      <div class="col">
+        <div class="label">Standard Login</div>
+        <div class="vline"></div>
+        <div class="node n-user">Inputs Phone Number / Email<br>&amp; Password</div>
+      </div>
+      <div class="col">
+        <div class="label">SSO Login</div>
+        <div class="vline"></div>
+        <div class="node n-user">Log in with Google</div>
+      </div>
+    </div>
+    <div class="vline"></div>
+    <div class="arrow">↓ proceeds to Bot WhatsApp Interaction</div>
+  </div>
+</div>
+
 <!-- SECTION 1: ENTRY & LANGUAGE -->
 <div class="section">
   <div class="section-title">① Entry &amp; Language Selection</div>
@@ -159,7 +182,7 @@ h1 { text-align: center; color: #00529b; font-size: 17px; margin-bottom: 4px; }
       <div class="col">
         <div class="label">Registered Number</div>
         <div class="vline"></div>
-        <div class="node n-user">User enters phone number</div>
+        <div class="node n-user">User enters phone number<br><small>💡 Must be exact 10 digits. Country codes (e.g. 521) trigger immediate 'Not found' logic.</small></div>
         <div class="vline"></div>
         <div class="row">
           <div class="col">
@@ -244,20 +267,9 @@ h1 { text-align: center; color: #00529b; font-size: 17px; margin-bottom: 4px; }
       <div class="col">
         <div class="label">❌ No</div>
         <div class="vline"></div>
-        <div class="node n-bot">I'm sorry those steps didn't help.</div>
+        <div class="node n-err">⚠️ Critical API Fallout<br><small>"Sorry, I am unable to process your request at the moment. Please give it a try after some time."</small></div>
         <div class="vline"></div>
-        <div class="row">
-          <div class="col">
-            <div class="label">Chat with an agent</div>
-            <div class="vline"></div>
-            <div class="arrow">↓ see Section 3-B</div>
-          </div>
-          <div class="col">
-            <div class="label">Create a ticket</div>
-            <div class="vline"></div>
-            <div class="node n-err">⚠️ Unable to process<br>at the moment.<br><small>Please try again later.</small></div>
-          </div>
-        </div>
+        <div class="node n-end">✓ Chat abruptly terminated</div>
       </div>
 
     </div>
